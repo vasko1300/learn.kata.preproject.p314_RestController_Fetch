@@ -1,11 +1,49 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
 <head>
+    <meta charset="UTF-8">
     <title>Spring Security Example</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
 </head>
 <body>
-<h1>User, welcome spring boot security page!</h1>
+<h1>Welcome, <span sec:authentication="name">User</span>!</h1>
+<h2>User Profile</h2>
+<table>
+    <tr>
+        <th>ID</th>
+        <td th:text="${user.id}">—</td>
+    </tr>
+    <tr>
+        <th>Username</th>
+        <td th:text="${user.username}">—</td>
+    </tr>
+    <tr>
+        <th>First Name</th>
+        <td th:text="${user.firstName}">—</td>
+    </tr>
+    <tr>
+        <th>Last Name</th>
+        <td th:text="${user.secondName}">—</td>
+    </tr>
+    <tr>
+        <th>Birth Year</th>
+        <td th:text="${user.birthYear}">—</td>
+    </tr>
+    <tr>
+        <th>Roles</th>
+        <td>
+            <span th:each="role, iterStat : ${user.roles}">
+                <span th:text="${role.name}"></span><span th:unless="${iterStat.last}">, </span>
+            </span>
+        </td>
+    </tr>
+</table>
 
+<div class="actions">
+    <a th:href="@{/user/edit}" class="btn btn-edit">Edit Profile</a>
+    <a th:href="@{/logout}" class="btn btn-delete">Logout</a>
+    <a th:href="@{/}" class="btn btn-back">Back to Home</a>
+</div>
 
 </body>
 </html>

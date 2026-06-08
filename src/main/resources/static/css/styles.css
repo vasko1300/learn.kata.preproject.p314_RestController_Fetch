@@ -1,0 +1,142 @@
+/* src/main/resources/static/css/styles.css */
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+th {
+    background-color: #f2f2f2;
+}
+.form-group {
+    margin-bottom: 5px;
+}
+label {
+    display: inline-block;
+    width: 180px;
+    font-weight: bold;
+}
+input[type="text"], input[type="password"], input[type="number"] {
+    padding: 5px;
+    width: 250px;
+}
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+}
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.checkbox-group label {
+    width: auto;
+    font-weight: normal;
+}
+.hint-text {
+    font-size: 12px;
+    color: #666;
+}
+.error-message {
+    color: red;
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid red;
+    border-radius: 5px;
+    background-color: #ffeeee;
+}
+.select {
+    padding: 5px;
+    width: 250px;
+    min-height: 100px;
+}
+.status-active {
+    color: green;
+    font-weight: bold;
+}
+.status-inactive {
+    color: red;
+    font-weight: bold;
+}
+.btn {
+    padding: 6px 15px;
+    border-radius: 3px;
+    display: inline-block;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: inherit;
+    text-align: center;
+    text-decoration: none;
+    line-height: normal;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+}
+.actions {
+    margin-top: 5px;
+}
+.btn-submit {
+    background-color: #4CAF50;
+    color: white;
+    /*border: none;*/
+    margin-right: 15px;
+}
+.btn-cancel {
+    background-color: #ccc;
+    color: black;
+}
+.btn-delete {
+    background-color: #f44336;
+    color: white;
+}
+.btn-add {
+    background-color: #4CAF50;
+    color: white;
+}
+.btn-edit {
+    background-color: #2196F3;
+    color: white;
+}
+.btn-back {
+    background-color: #555;
+    color: white;
+}
+.fieldset-group {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+.fieldset-group legend {
+    font-weight: bold;
+    padding: 0 10px;
+}
+.role-help {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+.checkbox-group label {
+    width: 180px;
+    font-weight: bold;
+    margin: 0;
+}
+.checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    cursor: pointer;
+}
+.checkbox-group span {
+    font-size: 12px;
+    color: #666;
+}

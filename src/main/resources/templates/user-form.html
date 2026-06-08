@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${user.id == null ? 'Add New User' : 'Edit User'}">User Form</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<h1 th:text="${user.id == null ? 'Add New User' : 'Edit User'}">User Form</h1>
+
+<form th:action="@{/admin/save}" th:object="${user}" method="post">
+    <fieldset class="fieldset-group">
+        <legend>Basic Information</legend>
+
+        <input type="hidden" th:field="*{id}" />
+
+        <div class="form-group">
+            <label>Username:</label>
+            <input type="text" th:field="*{username}" required />
+        </div>
+
+        <div class="form-group">
+            <label>Password:</label>
+            <input type="password" th:field="*{password}" />
+            <span th:if="${user.id != null}" style="font-size: 12px; color: #666;">
+                (Leave blank to keep current password)
+            </span>
+        </div>
+
+        <div th:if="${errorMessage}" class="error-message"
+             th:text="${errorMessage}"
+             style="color: red; margin-bottom: 15px; padding: 10px; border: 1px solid red; border-radius: 5px;">
+        </div>
+
+        <div class="form-group">
+            <label>First Name:</label>
+            <input type="text" th:field="*{firstName}" required />
+        </div>
+
+        <div class="form-group">
+            <label>Last Name:</label>
+            <input type="text" th:field="*{secondName}" required />
+        </div>
+
+        <div class="form-group">
+            <label>Birth Year:</label>
+            <input type="number" th:field="*{birthYear}" required />
+        </div>
+    </fieldset>
+
+    <fieldset class="fieldset-group">
+        <legend>Account Status</legend>
+
+        <div class="checkbox-group">
+            <label>Account Status:</label>
+            <input type="checkbox" th:field="*{accountNonExpired}" />
+            <span class="hint-text">If unchecked, account will be expired</span>
+        </div>
+
+        <div class="checkbox-group">
+            <label>Account UnLocked:</label>
+            <input type="checkbox" th:field="*{accountNonLocked}" />
+            <span class="hint-text">If unchecked, account will be locked</span>
+        </div>
+
+        <div class="checkbox-group">
+            <label>Credentials Status:</label>
+            <input type="checkbox" th:field="*{credentialsNonExpired}" />
+            <span class="hint-text">If unchecked, password will be expired</span>
+        </div>
+
+        <div class="checkbox-group">
+            <label>Enabled:</label>
+            <input type="checkbox" th:field="*{enabled}" />
+            <span class="hint-text">If unchecked, account will be disabled</span>
+        </div>
+    </fieldset>
+
+    <fieldset class="fieldset-group">
+        <legend>Roles</legend>
+
+        <div class="form-group">
+            <label>Select Roles:</label>
+            <select name="roleIds" multiple="multiple">
+                <option th:each="role : ${allRoles}"
+                        th:value="${role.id}"
+                        th:text="${role.name}"
+                        th:selected="${user.roles.contains(role)}">
+                </option>
+            </select>
+            <div class="role-help">
+                Hold Ctrl (or Cmd on Mac) to select multiple roles
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="actions">
+        <button type="submit" class="btn btn-submit">Save</button>
+        <a th:href="@{/admin}" class="btn btn-cancel">Cancel</a>
+    </div>
+</form>
+
+<div class="actions">
+    <a th:href="@{/logout}" class="btn btn-delete">Logout</a>
+    <a th:href="@{/}" class="btn btn-back">Back to Home</a>
+</div>
+</body>
+</html>

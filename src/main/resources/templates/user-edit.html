@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit user profile</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}" />
+</head>
+<body>
+<div class="profile-container">
+    <div class="profile-header">
+        <h1>Edit Profile</h1>
+        <p>Update your personal information</p>
+    </div>
+
+    <!-- Информационное сообщение о пароле -->
+    <div class="info-message">
+        <span>ℹ️ To change your password, please contact the administrator.</span>
+    </div>
+
+    <form th:action="@{/user/update}" th:object="${user}" method="post">
+        <input type="hidden" th:field="*{id}" />
+
+<!--        <input type="hidden" th:field="*{password}" />-->
+
+        <div class="form-group">
+            <label>Username:</label>
+            <input type="text" th:field="*{username}" readonly
+                   style="background-color: #f5f5f5; cursor: not-allowed;" />
+        </div>
+
+        <div class="form-group">
+            <label>First Name:</label>
+            <input type="text" th:field="*{firstName}" required />
+        </div>
+
+        <div class="form-group">
+            <label>Last Name:</label>
+            <input type="text" th:field="*{secondName}" required />
+        </div>
+
+        <div class="form-group">
+            <label>Birth Year:</label>
+            <input type="number" th:field="*{birthYear}" required min="1900" max="2026" />
+        </div>
+
+        <!-- Неизменяемые поля (показываем только для информации) -->
+        <div class="form-group">
+            <label>Roles:</label>
+            <div style="display: inline-block; padding: 8px; background-color: #f5f5f5; border-radius: 4px;">
+                <span th:each="role, iterStat : ${user.roles}">
+                    <span th:text="${role.name}"></span><span th:unless="${iterStat.last}">, </span>
+                </span>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-submit">Save</button>
+            <a th:href="@{/user}" class="btn btn-cancel">Cancel</a>
+        </div>
+    </form>
+
+    <div class="actions">
+        <a th:href="@{/logout}" class="btn btn-delete">Logout</a>
+        <a th:href="@{/}" class="btn btn-back">Back to Home</a>
+    </div>
+</div>
+</body>
+</html>
