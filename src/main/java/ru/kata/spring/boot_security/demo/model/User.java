@@ -9,6 +9,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -65,49 +66,19 @@ public class User implements UserDetails {
     @Column(nullable = false, name = "is_enabled")
     private boolean enabled;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     private Set<Role> roles = new HashSet<>();
-    // endregion
-
-// Этот конструктор в логике программы не используется
-//    public User(String username, String password, boolean enabled, boolean accountNonExpired,
-//                boolean credentialsNonExpired, boolean accountNonLocked,
-//                String firstName, String secondName, Integer birthYear) {
-//        if (((username == null) || "".equals(username)) || (password == null)) {
-//            throw new IllegalArgumentException(
-//                    "Cannot pass null or empty values to constructor");
-//        }
-//
-//        this.username = username;
-//        this.password = password;
-//        this.enabled = enabled;
-//        this.accountNonExpired = accountNonExpired;
-//        this.credentialsNonExpired = credentialsNonExpired;
-//        this.accountNonLocked = accountNonLocked;
-//
-//        this.firstName = firstName;
-//        this.secondName = secondName;
-//        this.birthYear = birthYear;
-//    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // Преобразуем Set<Role> в Set<GrantedAuthority>
         return roles.stream().map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toSet());
-    }
-    public void addRole(Role role) {
-        if (roles == null) roles = new HashSet<>();
-        roles.add(role);
-    }
-
-    public void removeRole(Role role) {
-        if (roles != null) roles.remove(role);
     }
 }
 

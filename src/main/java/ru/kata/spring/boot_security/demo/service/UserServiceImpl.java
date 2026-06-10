@@ -1,113 +1,91 @@
 package ru.kata.spring.boot_security.demo.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kata.spring.boot_security.demo.model.Role;
+import ru.kata.spring.boot_security.demo.dao.UserDao;
 import ru.kata.spring.boot_security.demo.model.User;
-import ru.kata.spring.boot_security.demo.repo.RoleRepository;
-import ru.kata.spring.boot_security.demo.repo.UserRepository;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Service
+@Transactional
 public class UserServiceImpl implements UserService {
-    private final UserRepository userRepo;
-    private final RoleRepository roleRepo;
+    private final UserDao userDao;
     private final PasswordEncoder passwordEncoder;
+    private final RoleService roleService;
 
-    @Autowired
-    public UserServiceImpl(UserRepository userRepo, RoleRepository roleRepo) {
-        this.userRepo = userRepo;
-        this.roleRepo = roleRepo;
+    public UserServiceImpl(UserDao userDao, RoleService roleService) {
+        this.userDao = userDao;
         this.passwordEncoder = new BCryptPasswordEncoder();
+        this.roleService = roleService;
     }
 
     @Override
-    @Transactional
-    public void saveUser(User user, String requestor) {
-        if (user.getId() != null && user.getId() > 0) {
-            // ========== РЕДАКТИРОВАНИЕ СУЩЕСТВУЮЩЕГО ПОЛЬЗОВАТЕЛЯ ==========
-            User existingUser = userRepo.findById(user.getId())
-                    .orElseThrow(() -> new RuntimeException("User not found with id: " + user.getId()));
+    public void updateProfile(User user) {
+        User existingUser = userDao.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + user.getId()));
 
-            // Поля, изменение которых доступно обеим ролям
+        existingUser.setUsername(user.getUsername());
+        existingUser.setFirstName(user.getFirstName());
+        existingUser.setSecondName(user.getSecondName());
+        existingUser.setBirthYear(user.getBirthYear());
+
+        userDao.save(existingUser);
+    }
+
+    @Override
+    public void saveUser(User user, List<Long> roleIds) {
+        if (user.getId() != null && user.getId() > 0) { // Новый пользователь
+            User existingUser = userDao.findById(user.getId())
+                    .orElseThrow(() -> new RuntimeException("User not found with id: " + user.getId()));
             existingUser.setUsername(user.getUsername());
             existingUser.setFirstName(user.getFirstName());
             existingUser.setSecondName(user.getSecondName());
             existingUser.setBirthYear(user.getBirthYear());
+            existingUser.setAccountNonExpired(user.isAccountNonExpired());
+            existingUser.setAccountNonLocked(user.isAccountNonLocked());
+            existingUser.setCredentialsNonExpired(user.isCredentialsNonExpired());
+            existingUser.setEnabled(user.isEnabled());
 
-            // Поля, изменение которых доступно только админу
-            if (requestor.equals("admin")) {
-                existingUser.setAccountNonExpired(user.isAccountNonExpired());
-                existingUser.setAccountNonLocked(user.isAccountNonLocked());
-                existingUser.setCredentialsNonExpired(user.isCredentialsNonExpired());
-                existingUser.setEnabled(user.isEnabled());
-
-                if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-                    existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
-                }
-                if (user.getRoles() != null) {
-                    Set<Role> managedRoles = new HashSet<>();
-                    for (Role role : user.getRoles()) {
-                        if (role.getId() != null) {
-                            managedRoles.add(roleRepo.findById(role.getId())
-                                    .orElseThrow(() -> new RuntimeException("Role not found: " + role.getId())));
-                        }
-                    }
-                    existingUser.setRoles(managedRoles);
-                }
+            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+                existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
             }
-            userRepo.save(existingUser);
-            return;
-        }
-
-        // ========== СОЗДАНИЕ НОВОГО ПОЛЬЗОВАТЕЛЯ ==========
-        if (user.getPassword() == null || user.getPassword().isEmpty()) {
-            throw new IllegalArgumentException("Password is required for new user");
-        }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-        // Загружаем управляемые объекты ролей
-        if (user.getRoles() != null && !user.getRoles().isEmpty()) {
-            Set<Role> managedRoles = new HashSet<>();
-            for (Role role : user.getRoles()) {
-                if (role.getId() != null) {
-                    managedRoles.add(roleRepo.findById(role.getId())
-                            .orElseThrow(() -> new RuntimeException("Role not found: " + role.getId())));
-                }
+            existingUser.setRoles(roleService.convertIdsToRoles(roleIds));
+            userDao.save(existingUser);
+        } else { // Существующий пользователь
+            if (user.getPassword() == null || user.getPassword().isEmpty()) {
+                throw new IllegalArgumentException("Password is required for new user");
             }
-            user.setRoles(managedRoles);
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            user.setRoles(roleService.convertIdsToRoles(roleIds));
+            userDao.save(user);
         }
-
-        userRepo.save(user);
     }
 
     @Override
-    @Transactional
-    public void deleteUser(Long id) {
-        userRepo.deleteById(id);
+    public void deleteById(Long id) {
+        userDao.deleteById(id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<User> getAllUsers() {
-        return userRepo.findAll();
+    public List<User> findAll() {
+        return userDao.findAll();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public User getUserById(Long id) {
-        return userRepo.findById(id)
+    public User findById(Long id) {
+        return userDao.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
+
     @Override
-    public User getUserByUsername(String username) {
-        return userRepo.findByUsername(username)
+    @Transactional(readOnly = true)
+    public User findByUsername(String username) {
+        return userDao.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

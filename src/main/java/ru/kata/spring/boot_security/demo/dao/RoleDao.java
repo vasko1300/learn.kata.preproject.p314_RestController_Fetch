@@ -1,12 +1,11 @@
-package ru.kata.spring.boot_security.demo.repo;
+package ru.kata.spring.boot_security.demo.dao;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import ru.kata.spring.boot_security.demo.model.Role;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface RoleRepository {
+public interface RoleDao {
     List<Role> findAll();
     void save(Role role);
     void deleteById(Long id);

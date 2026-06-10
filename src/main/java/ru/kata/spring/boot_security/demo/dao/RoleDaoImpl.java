@@ -1,4 +1,4 @@
-package ru.kata.spring.boot_security.demo.repo;
+package ru.kata.spring.boot_security.demo.dao;
 
 import org.springframework.stereotype.Repository;
 import ru.kata.spring.boot_security.demo.model.Role;
@@ -9,14 +9,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class RoleRepoImpl implements RoleRepository {
+public class RoleDaoImpl implements RoleDao {
     @PersistenceContext
     private EntityManager entityManager;
 
     @Override
     public List<Role> findAll() {
-        String jpql = "select r from Role r";
-        return entityManager.createQuery(jpql, Role.class).getResultList();
+        return entityManager.createQuery("select r from Role r", Role.class).getResultList();
     }
 
     @Override
@@ -38,7 +37,6 @@ public class RoleRepoImpl implements RoleRepository {
 
     @Override
     public Optional<Role> findById(Long id) {
-        Role role = entityManager.find(Role.class, id);
-        return Optional.ofNullable(role);
+        return Optional.ofNullable(entityManager.find(Role.class, id));
     }
 }
