@@ -24,9 +24,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.info("=== loadUserByUsername вызван для username: {} ===", username);
-        User user = userDao.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден: " + username));
-        Hibernate.initialize(user.getRoles());
+        User user = null;
+        try {
+            user = userDao.findByUsernameWithRoles(username)
+                    .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден: " + username));
+        } catch (UsernameNotFoundException e) {
+            log.info("=== {} ===", e.getMessage());
+            throw e;
+        }
+//        Hibernate.initialize(user.getRoles());
         return user;
     }
 }

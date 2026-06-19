@@ -18,14 +18,14 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @Transactional
-    public void save(Role role) {
-        roleDao.save(role);
+    public Role save(Role role) {
+        return roleDao.save(role);
     }
 
     @Override
     @Transactional
-    public void deleteById(Long id) {
-        roleDao.deleteById(id);
+    public boolean deleteById(Long id) {
+        return roleDao.deleteById(id);
     }
 
     @Override
@@ -39,15 +39,5 @@ public class RoleServiceImpl implements RoleService {
     public Role findById(Long id) {
         return roleDao.findById(id)
                 .orElseThrow(() -> new RuntimeException("Role not found"));
-    }
-
-    @Override
-    public Set<Role> convertIdsToRoles(List<Long> ids) {
-        if (ids != null && !ids.isEmpty()) {
-            return ids.stream()
-                    .map(id -> findById(id))
-                    .collect(Collectors.toSet());
-        }
-        return Set.of();
     }
 }

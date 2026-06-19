@@ -53,6 +53,8 @@
             </div>
         </div>
 
+        <div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
+
         <div class="form-actions">
             <button type="submit" class="btn btn-submit">Save</button>
             <a th:href="@{/user}" class="btn btn-cancel">Cancel</a>

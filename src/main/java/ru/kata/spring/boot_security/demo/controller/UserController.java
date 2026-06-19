@@ -28,7 +28,7 @@ public class UserController {
     }
 
     @GetMapping("/edit")
-    public String showEditForm(Authentication auth, Model model) {
+    public String showEditForm(Model model, Authentication auth) {
         User user = userService.findByUsername(auth.getName());
         model.addAttribute("user", user);
         return "user/user-edit";

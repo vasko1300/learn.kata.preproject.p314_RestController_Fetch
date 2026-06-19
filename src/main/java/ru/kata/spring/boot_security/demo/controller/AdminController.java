@@ -51,10 +51,11 @@ public class AdminController {
 
     @PostMapping("/save")
     public String saveUser(@ModelAttribute("user") User user,
-                           @RequestParam(value = "roleIds", required = false) List<Long> selectedRoleIds,
+                           @RequestParam(value = "roleIds", required = false) Set<Long> selectedRoleIds,
                            Model model) {
         try {
-            userService.saveUser(user, selectedRoleIds);
+            user.setRoles(selectedRoleIds.stream().map(roleService::findById).collect(Collectors.toSet()));
+            userService.saveUser(user);
             return "redirect:/admin";
         } catch (IllegalArgumentException e) {
             model.addAttribute("errorMessage", e.getMessage());

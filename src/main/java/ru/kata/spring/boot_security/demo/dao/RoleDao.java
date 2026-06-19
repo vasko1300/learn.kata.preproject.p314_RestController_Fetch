@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface RoleDao {
     List<Role> findAll();
-    void save(Role role);
-    void deleteById(Long id);
+    Role save(Role role);
+    boolean deleteById(Long id);
     Optional<Role> findById(Long id);
 }

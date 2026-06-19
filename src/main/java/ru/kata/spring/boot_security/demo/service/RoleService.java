@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.Set;
 
 public interface RoleService {
-    void save(Role role);
-    void deleteById(Long id);
+    Role save(Role role);
+    boolean deleteById(Long id);
     List<Role> findAll();
     Role findById(Long id);
-    Set<Role> convertIdsToRoles(List<Long> ids);
 }

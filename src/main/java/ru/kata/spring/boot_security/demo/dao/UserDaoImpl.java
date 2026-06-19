@@ -15,23 +15,21 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public Optional<User> findByUsername(String username) {
-        // Вместо Hibernate.initialize в UserDetailsServiceImpl можно дописать запрос для дозагрузки ролей:
-        // "SELECT DISTINCT u FROM User u JOIN FETCH u.roles WHERE u.username = :username"
-        User user = entityManager
+        return entityManager
                 .createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
                 .setParameter("username", username)
-                .getSingleResult();
-        return Optional.ofNullable(user);
+                .getResultStream()
+                .findFirst();
     }
 
     @Override
     public Optional<User> findByUsernameWithRoles(String username) {
-        return entityManager.createQuery(
+        return entityManager
+                .createQuery(
                         "SELECT DISTINCT u FROM User u JOIN FETCH u.roles WHERE u.username = :username",
                         User.class)
                 .setParameter("username", username)
-                .getResultList()
-                .stream()
+                .getResultStream()
                 .findFirst();
     }
 
@@ -42,20 +40,23 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public void save(User user) {
+    public User save(User user) {
         if (user.getId() == null) {
             entityManager.persist(user);
+            return user;
         } else {
-            entityManager.merge(user);
+            return entityManager.merge(user);
         }
     }
 
     @Override
-    public void deleteById(Long id) {
+    public boolean deleteById(Long id) {
         User user = entityManager.find(User.class, id);
         if (user != null) {
             entityManager.remove(user);
+            return true;
         }
+        return false;
     }
 
     @Override

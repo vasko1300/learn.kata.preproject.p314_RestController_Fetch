@@ -34,7 +34,22 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
-    // region Поля
+    public User(User user) {}
+    public User(String username, String password, String firstName, String secondName, Integer birthYear,
+                boolean accountNonExpired, boolean accountNonLocked, boolean credentialsNonExpired, boolean enabled,
+                Set<Role> roles) {
+        this.username = username;
+        this.password = password;
+        this.firstName = firstName;
+        this.secondName = secondName;
+        this.birthYear = birthYear;
+        this.accountNonExpired = accountNonExpired;
+        this.accountNonLocked = accountNonLocked;
+        this.credentialsNonExpired = credentialsNonExpired;
+        this.enabled = enabled;
+        this.roles = roles;
+    }
+
     @ToString.Include
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

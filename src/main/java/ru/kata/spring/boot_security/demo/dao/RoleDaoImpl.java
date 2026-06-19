@@ -19,20 +19,23 @@ public class RoleDaoImpl implements RoleDao {
     }
 
     @Override
-    public void save(Role role) {
+    public Role save(Role role) {
         if (role.getId() == null) {
             entityManager.persist(role);
+            return role;
         } else {
-            entityManager.merge(role);
+            return entityManager.merge(role);
         }
     }
 
     @Override
-    public void deleteById(Long id) {
+    public boolean deleteById(Long id) {
         Role role = entityManager.find(Role.class, id);
         if (role != null) {
             entityManager.remove(role);
+            return true;
         }
+        return false;
     }
 
     @Override

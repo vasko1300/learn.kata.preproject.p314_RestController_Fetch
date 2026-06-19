@@ -12,9 +12,9 @@ public interface UserDao {
 
     Optional<User> findById(Long id);
 
-    void save(User existingUser);
+    User save(User existingUser);
 
-    void deleteById(Long id);
+    boolean deleteById(Long id);
 
     List<User> findAll();
 }

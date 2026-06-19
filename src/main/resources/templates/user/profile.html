@@ -39,6 +39,8 @@
     </tr>
 </table>
 
+<div th:if="${successMessage}" class="success-message" th:text="${successMessage}"></div>
+
 <div class="actions">
     <a th:href="@{/user/edit}" class="btn btn-edit">Edit Profile</a>
     <a th:href="@{/logout}" class="btn btn-delete">Logout</a>
