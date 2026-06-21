@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3"
+      lang="en">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login page</title>
+</head>
+<body class="bg-light d-flex align-items-center" style="min-height: 100vh;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+
+                <!-- Карточка с формой -->
+                <div class="card shadow-sm">
+                    <div class="card-body p-4 p-md-5">
+
+                        <!-- Заголовок -->
+                        <h1 class="h3 mb-3 fw-normal text-center">Please sign in</h1>
+
+                        <!-- Форма -->
+                        <form th:action="@{/login.html}" method="post">
+
+                            <!-- Поле Email / Username -->
+                            <div class="form-floating mb-3">
+                                <input type="text"
+                                       class="form-control"
+                                       id="username"
+                                       name="username"
+                                       placeholder="name@example.com"
+                                       autofocus="autofocus"
+                                       th:value="${username}">
+                                <label for="username">Username</label>
+                            </div>
+
+                            <!-- Поле Password -->
+                            <div class="form-floating mb-3">
+                                <input type="password"
+                                       class="form-control"
+                                       id="password"
+                                       name="password"
+                                       placeholder="Password">
+                                <label for="password">Password</label>
+                            </div>
+
+                            <!-- Ошибка логина -->
+                            <div th:if="${loginError}" class="alert alert-danger" role="alert">
+                                Wrong user or password
+                            </div>
+
+                            <!-- Кнопка входа -->
+                            <button class="btn btn-primary w-100 py-2" type="submit">
+                                Sign in
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+                <!-- Конец карточки -->
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

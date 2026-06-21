@@ -1,5 +1,7 @@
 package ru.kata.spring.boot_security.demo.controller;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +14,7 @@ import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,25 +31,17 @@ public class AdminController {
     }
 
     @GetMapping
-    public String listUsers(Model model) {
+    public String listUsers(Model model, Authentication authentication) {
         model.addAttribute("users", userService.findAll());
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        List<String> roles = authorities.stream()
+                .map(a -> a.getAuthority().replace("ROLE_", ""))
+                .collect(Collectors.toList());
+        model.addAttribute("roles", roles);
+        model.addAttribute("editUser", new User());
+        model.addAttribute("allRoles", roleService.findAll());
+        model.addAttribute("newUser", new User());
         return "admin/users";
-    }
-
-    @GetMapping("/new")
-    public String showCreateForm(Model model) {
-        model.addAttribute("user", new User());
-        model.addAttribute("allRoles", roleService.findAll());
-        return "admin/user-form";
-    }
-
-    @GetMapping("/edit")
-    public String showEditForm(@RequestParam Long id, Model model) {
-        User user = userService.findById(id);
-        user.setPassword(null);
-        model.addAttribute("user", user);
-        model.addAttribute("allRoles", roleService.findAll());
-        return "admin/user-form";
     }
 
     @PostMapping("/save")
@@ -60,7 +55,10 @@ public class AdminController {
         } catch (IllegalArgumentException e) {
             model.addAttribute("errorMessage", e.getMessage());
             model.addAttribute("allRoles", roleService.findAll());
-            return "admin/user-form";
+            model.addAttribute("newUser", new User());
+            model.addAttribute("user", user);
+            model.addAttribute("users", userService.findAll());
+            return "admin/users";
         }
     }
 

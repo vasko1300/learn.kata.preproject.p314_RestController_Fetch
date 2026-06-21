@@ -18,10 +18,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    protected void configure(final HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                    .antMatchers("/", "/index", "/error").permitAll()
+                    .antMatchers("/", "/login.html","/error", "/login-error").permitAll()
                     .antMatchers("/css/**").permitAll()
                     .antMatchers("/admin/**").hasRole("ADMIN")
                     .antMatchers("/user/**").hasRole("USER")
@@ -30,9 +30,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .formLogin()
                     .successHandler(successUserHandler)
                     .permitAll()
+                    .loginPage("/login.html")
+                    .failureUrl("/login-error.html")
                     .and()
                 .logout()
-                    .permitAll();
+                    .logoutUrl("/sign-out")
+                    .permitAll()
+                    .logoutSuccessUrl("/")
+                    .invalidateHttpSession(true)
+                    .clearAuthentication(true)
+                    .deleteCookies("JSESSIONID");
     }
     @Bean
     public PasswordEncoder passwordEncoder() {

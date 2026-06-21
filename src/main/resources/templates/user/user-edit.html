@@ -1,70 +1,130 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3"
+      lang="en">
 <head>
-    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Edit user profile</title>
-    <link rel="stylesheet" th:href="@{/css/styles.css}" />
 </head>
 <body>
-<div class="profile-container">
-    <div class="profile-header">
-        <h1>Edit Profile</h1>
-        <p>Update your personal information</p>
+
+<!-- ======== НАВБАР ======== -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <div class="navbar-brand">
+            <span sec:authentication="name" class="fw-bold">admin</span>
+            <span class="text-light ms-2" th:each="authority : ${#authentication.getAuthorities()}">
+                <span th:text="${#strings.replace(authority.getAuthority(), 'ROLE_', '')}"></span>
+                <span th:if="${!authorityStat.last}">, </span>
+            </span>
+        </div>
+        <div class="d-flex">
+            <a href="/logout" class="btn btn-outline-danger">Logout</a>
+        </div>
     </div>
+</nav>
 
-    <!-- Информационное сообщение о пароле -->
-    <div class="info-message">
-        <span>ℹ️ To change your password, please contact the administrator.</span>
-    </div>
-
-    <form th:action="@{/user/update}" th:object="${user}" method="post">
-        <input type="hidden" th:field="*{id}" />
-
-<!--        <input type="hidden" th:field="*{password}" />-->
-
-        <div class="form-group">
-            <label>Username:</label>
-            <input type="text" th:field="*{username}" readonly
-                   style="background-color: #f5f5f5; cursor: not-allowed;" />
-        </div>
-
-        <div class="form-group">
-            <label>First Name:</label>
-            <input type="text" th:field="*{firstName}" required />
-        </div>
-
-        <div class="form-group">
-            <label>Last Name:</label>
-            <input type="text" th:field="*{secondName}" required />
-        </div>
-
-        <div class="form-group">
-            <label>Birth Year:</label>
-            <input type="number" th:field="*{birthYear}" required min="1900" max="2026" />
-        </div>
-
-        <!-- Неизменяемые поля (показываем только для информации) -->
-        <div class="form-group">
-            <label>Roles:</label>
-            <div style="display: inline-block; padding: 8px; background-color: #f5f5f5; border-radius: 4px;">
-                <span th:each="role, iterStat : ${user.roles}">
-                    <span th:text="${role.name}"></span><span th:unless="${iterStat.last}">, </span>
-                </span>
+<!-- ======== ОСНОВНОЙ КОНТЕЙНЕР ======== -->
+<div class="container-fluid">
+    <div class="row">
+        <!-- ЛЕВАЯ КОЛОНКА (меню) -->
+        <div class="col-md-2">
+            <div class="list-group mt-3">
+                <!-- Admin (только для администраторов) -->
+                <a sec:authorize="hasRole('ADMIN')"
+                   href="/admin"
+                   class="list-group-item list-group-item-action">
+                    Admin
+                </a>
+                <!-- User (для всех) -->
+                <a href="/user"
+                   class="list-group-item list-group-item-action active">
+                    User
+                </a>
             </div>
         </div>
 
-        <div th:if="${errorMessage}" class="error-message" th:text="${errorMessage}"></div>
+        <!-- ПРАВАЯ КОЛОНКА (контент) -->
+        <div class="col-md-10 bg-body-tertiary p-3" style="min-height: 100vh; overflow-x: hidden;">
+            <h1 class="mt-3 mb-3">Edit Profile</h1>
 
-        <div class="form-actions">
-            <button type="submit" class="btn btn-submit">Save</button>
-            <a th:href="@{/user}" class="btn btn-cancel">Cancel</a>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Update your personal information</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Информационное сообщение о пароле -->
+                    <div class="alert alert-info" role="alert">
+                        <span>ℹ️ To change your password or username, please contact the administrator.</span>
+                    </div>
+
+                    <!-- Форма редактирования -->
+                    <form th:action="@{/user/update}" th:object="${user}" method="post">
+                        <input type="hidden" th:field="*{id}" />
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Username</label>
+                                <input type="text" th:field="*{username}"
+                                       class="form-control bg-light"
+                                       readonly
+                                       style="cursor: not-allowed;" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Birth Year</label>
+                                <input type="number" th:field="*{birthYear}"
+                                       class="form-control"
+                                       required
+                                       min="1900"
+                                       max="2026" />
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">First Name</label>
+                                <input type="text" th:field="*{firstName}"
+                                       class="form-control"
+                                       required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" th:field="*{secondName}"
+                                       class="form-control"
+                                       required />
+                            </div>
+                        </div>
+
+                        <!-- Роли (только для просмотра) -->
+                        <div class="mb-3">
+                            <label class="form-label">Roles</label>
+                            <div class="form-control bg-light" style="cursor: not-allowed;">
+                                <span th:each="role, iterStat : ${user.roles}">
+                                    <span th:text="${#strings.replace(role.name, 'ROLE_', '')}"></span>
+                                    <span th:unless="${iterStat.last}">, </span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Сообщение об ошибке -->
+                        <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+                            <span th:text="${errorMessage}">Error message</span>
+                        </div>
+
+                        <!-- Кнопки действий -->
+                        <div class="mt-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Save</button>
+                            <a th:href="@{/user}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-    </form>
-
-    <div class="actions">
-        <a th:href="@{/logout}" class="btn btn-delete">Logout</a>
-        <a th:href="@{/}" class="btn btn-back">Back to Home</a>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
