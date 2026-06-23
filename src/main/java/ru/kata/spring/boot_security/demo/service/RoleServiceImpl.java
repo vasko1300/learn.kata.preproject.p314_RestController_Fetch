@@ -3,41 +3,39 @@ package ru.kata.spring.boot_security.demo.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.model.Role;
-import ru.kata.spring.boot_security.demo.dao.RoleDao;
+import ru.kata.spring.boot_security.demo.repo.RoleRepository;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class RoleServiceImpl implements RoleService {
-    private final RoleDao roleDao;
-    public RoleServiceImpl(RoleDao roleDao) {
-        this.roleDao = roleDao;
+    private final RoleRepository roleRepo;
+    public RoleServiceImpl(RoleRepository roleRepo) {
+        this.roleRepo = roleRepo;
     }
 
     @Override
     @Transactional
     public Role save(Role role) {
-        return roleDao.save(role);
+        return roleRepo.save(role);
     }
 
     @Override
     @Transactional
-    public boolean deleteById(Long id) {
-        return roleDao.deleteById(id);
+    public void deleteById(Long id) {
+        roleRepo.deleteById(id);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Role> findAll() {
-        return roleDao.findAll();
+        return roleRepo.findAll();
     }
 
     @Override
     @Transactional(readOnly = true)
     public Role findById(Long id) {
-        return roleDao.findById(id)
+        return roleRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Role not found"));
     }
 }

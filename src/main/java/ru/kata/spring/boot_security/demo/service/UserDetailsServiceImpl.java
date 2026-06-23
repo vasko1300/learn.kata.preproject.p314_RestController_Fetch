@@ -1,6 +1,5 @@
 package ru.kata.spring.boot_security.demo.service;
 
-import org.hibernate.Hibernate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,15 +8,15 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.model.User;
-import ru.kata.spring.boot_security.demo.dao.UserDao;
+import ru.kata.spring.boot_security.demo.repo.UserRepository;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
     private static final Logger log = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
-    private final UserDao userDao;
+    private final UserRepository userRepo;
 
-    public UserDetailsServiceImpl(UserDao userDao) {
-        this.userDao = userDao;
+    public UserDetailsServiceImpl(UserRepository userRepo) {
+        this.userRepo = userRepo;
     }
 
     @Override
@@ -26,7 +25,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         log.info("=== loadUserByUsername вызван для username: {} ===", username);
         User user = null;
         try {
-            user = userDao.findByUsernameWithRoles(username)
+            user = userRepo.findByUsernameWithRoles(username)
                     .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден: " + username));
         } catch (UsernameNotFoundException e) {
             log.info("=== {} ===", e.getMessage());

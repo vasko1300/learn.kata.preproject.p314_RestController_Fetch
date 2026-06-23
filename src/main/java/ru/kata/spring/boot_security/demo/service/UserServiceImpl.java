@@ -1,10 +1,9 @@
 package ru.kata.spring.boot_security.demo.service;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kata.spring.boot_security.demo.dao.UserDao;
+import ru.kata.spring.boot_security.demo.repo.UserRepository;
 import ru.kata.spring.boot_security.demo.model.User;
 
 import java.util.List;
@@ -12,17 +11,17 @@ import java.util.List;
 @Service
 @Transactional
 public class UserServiceImpl implements UserService {
-    private final UserDao userDao;
+    private final UserRepository userRepo;
     private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserDao userDao, PasswordEncoder passwordEncoder) {
-        this.userDao = userDao;
+    public UserServiceImpl(UserRepository userRepo, PasswordEncoder passwordEncoder) {
+        this.userRepo = userRepo;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public User updateProfile(User user) {
-        User existingUser = userDao.findById(user.getId())
+        User existingUser = userRepo.findById(user.getId())
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + user.getId()));
 
         existingUser.setUsername(user.getUsername());
@@ -30,13 +29,13 @@ public class UserServiceImpl implements UserService {
         existingUser.setSecondName(user.getSecondName());
         existingUser.setBirthYear(user.getBirthYear());
 
-        return userDao.save(existingUser);
+        return userRepo.save(existingUser);
     }
 
     @Override
     public User saveUser(User user) {
         if (user.getId() != null && user.getId() > 0) { // Существующий пользователь
-            User existingUser = userDao.findById(user.getId())
+            User existingUser = userRepo.findById(user.getId())
                     .orElseThrow(() -> new RuntimeException("User not found with id: " + user.getId()));
             existingUser.setUsername(user.getUsername());
             existingUser.setFirstName(user.getFirstName());
@@ -51,39 +50,39 @@ public class UserServiceImpl implements UserService {
             if (user.getPassword() != null && !user.getPassword().isEmpty()) {
                 existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
             }
-            return userDao.save(existingUser);
+            return userRepo.save(existingUser);
         } else { // Новый пользователь
             if (user.getPassword() == null || user.getPassword().isEmpty()) {
                 throw new IllegalArgumentException("Password is required for new user");
             }
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             user.setRoles(user.getRoles());
-            return userDao.save(user);
+            return userRepo.save(user);
         }
     }
 
     @Override
-    public boolean deleteById(Long id) {
-        return userDao.deleteById(id);
+    public void deleteById(Long id) {
+        userRepo.deleteById(id);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<User> findAll() {
-        return userDao.findAll();
+        return userRepo.findAll();
     }
 
     @Override
     @Transactional(readOnly = true)
     public User findById(Long id) {
-        return userDao.findById(id)
+        return userRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     @Override
     @Transactional(readOnly = true)
     public User findByUsername(String username) {
-        return userDao.findByUsername(username)
+        return userRepo.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

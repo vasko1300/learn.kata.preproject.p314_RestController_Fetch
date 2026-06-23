@@ -7,13 +7,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import ru.kata.spring.boot_security.demo.dao.RoleDao;
-import ru.kata.spring.boot_security.demo.dao.UserDao;
+import ru.kata.spring.boot_security.demo.repo.RoleRepository;
+import ru.kata.spring.boot_security.demo.repo.UserRepository;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
-import ru.kata.spring.boot_security.demo.service.RoleService;
-import ru.kata.spring.boot_security.demo.service.RoleServiceImpl;
-import ru.kata.spring.boot_security.demo.service.UserService;
 import ru.kata.spring.boot_security.demo.service.UserServiceImpl;
 
 import java.util.List;
@@ -21,9 +18,12 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,9 +32,9 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTests {
     @Mock
-    UserDao userDao;
+    UserRepository userRepo;
     @Mock
-    RoleDao roleDao;
+    RoleRepository roleRepo;
     @Mock
     BCryptPasswordEncoder passwordEncoder;
     @InjectMocks
@@ -65,11 +65,11 @@ public class UserServiceTests {
         System.out.println("rawPass: " + rawPass);
         String encodedPass = "encodedPass";
         when(passwordEncoder.encode(rawPass)).thenReturn(encodedPass);
-        when(userDao.save(any(User.class))).thenReturn(unsavedUser);
+        when(userRepo.save(any(User.class))).thenReturn(unsavedUser);
 
         User savedUser = userService.saveUser(unsavedUser);
         verify(passwordEncoder).encode(rawPass);
-        verify(userDao, times(1)).save(any(User.class));
+        verify(userRepo, times(1)).save(any(User.class));
 
         assertThat(savedUser.getPassword()).isEqualTo(encodedPass);
         assertThat(savedUser).isEqualTo(unsavedUser);
@@ -83,7 +83,7 @@ public class UserServiceTests {
         assertThatThrownBy(() -> userService.saveUser(newUser))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Password is required for new user");
-        verify(userDao, never()).save(any(User.class));
+        verify(userRepo, never()).save(any(User.class));
         verify(passwordEncoder, never()).encode(anyString());
     }
 
@@ -95,7 +95,7 @@ public class UserServiceTests {
         assertThatThrownBy(() -> userService.saveUser(newUser))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Password is required for new user");
-        verify(userDao, never()).save(any(User.class));
+        verify(userRepo, never()).save(any(User.class));
         verify(passwordEncoder, never()).encode(anyString());
     }
 
@@ -115,14 +115,14 @@ public class UserServiceTests {
         updatedUser.setPassword(newRawPassword);
         updatedUser.setFirstName(newName);
 
-        when(userDao.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepo.findById(userId)).thenReturn(Optional.of(existingUser));
         when(passwordEncoder.encode(newRawPassword)).thenReturn(encodedNewPass);
-        when(userDao.save(any(User.class))).thenReturn(existingUser);
+        when(userRepo.save(any(User.class))).thenReturn(existingUser);
 
         userService.saveUser(updatedUser);
 
         verify(passwordEncoder).encode(newRawPassword);
-        verify(userDao).save(any(User.class));
+        verify(userRepo).save(any(User.class));
 
         assertThat(existingUser.getFirstName()).isEqualTo(newName);
         assertThat(existingUser.getPassword()).isEqualTo(encodedNewPass);
@@ -142,13 +142,13 @@ public class UserServiceTests {
         updatedUser.setUsername("newUsername");
         updatedUser.setPassword(null);
 
-        when(userDao.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(userDao.save(existingUser)).thenReturn(existingUser);
+        when(userRepo.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepo.save(existingUser)).thenReturn(existingUser);
 
         userService.saveUser(updatedUser);
 
         verify(passwordEncoder, never()).encode(anyString());
-        verify(userDao).save(existingUser);
+        verify(userRepo).save(existingUser);
         assertThat(existingUser.getUsername()).isEqualTo("newUsername");
         assertThat(existingUser.getPassword()).isEqualTo("oldEncodedPassword");
     }
@@ -160,13 +160,13 @@ public class UserServiceTests {
         User user = createTestUser();
         user.setId(nonExistentId);
 
-        when(userDao.findById(nonExistentId)).thenReturn(Optional.empty());
+        when(userRepo.findById(nonExistentId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.saveUser(user))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("User not found with id: " + nonExistentId);
 
-        verify(userDao, never()).save(any(User.class));
+        verify(userRepo, never()).save(any(User.class));
     }
 
     // ==================== ТЕСТЫ ДЛЯ updateProfile ====================
@@ -186,14 +186,14 @@ public class UserServiceTests {
         updatedProfile.setSecondName("NewSecond");
         updatedProfile.setBirthYear(2000);
 
-        when(userDao.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(userDao.save(existingUser)).thenReturn(existingUser);
+        when(userRepo.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepo.save(existingUser)).thenReturn(existingUser);
 
         // Act
         User result = userService.updateProfile(updatedProfile);
 
         // Assert
-        verify(userDao).save(existingUser);
+        verify(userRepo).save(existingUser);
         assertThat(result.getUsername()).isEqualTo("newUsername");
         assertThat(result.getFirstName()).isEqualTo("NewFirst");
         assertThat(result.getSecondName()).isEqualTo("NewSecond");
@@ -209,38 +209,51 @@ public class UserServiceTests {
         User user = createTestUser();
         user.setId(nonExistentId);
 
-        when(userDao.findById(nonExistentId)).thenReturn(Optional.empty());
+        when(userRepo.findById(nonExistentId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.updateProfile(user))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("User not found with id: " + nonExistentId);
 
-        verify(userDao, never()).save(any(User.class));
+        verify(userRepo, never()).save(any(User.class));
     }
 
     // ==================== ТЕСТЫ ДЛЯ deleteById ====================
     @Test
-    @DisplayName("Should return true when user successfully deleted")
-    void deleteById_existingUser_shouldReturnTrue() {
+    @DisplayName("Should delegate delete to repository")
+    void deleteById_shouldCallRepositoryDelete() {
         Long userId = 1L;
-        when(userDao.deleteById(userId)).thenReturn(true);
+        doNothing().when(userRepo).deleteById(userId);
 
-        boolean result = userService.deleteById(userId);
+        userService.deleteById(userId);
 
-        assertThat(result).isTrue();
-        verify(userDao).deleteById(userId);
+        verify(userRepo, times(1)).deleteById(userId);
     }
 
     @Test
-    @DisplayName("Should return false when user does not exist")
-    void deleteById_nonExistingUser_shouldReturnFalse() {
+    @DisplayName("Should not throw exception when deleting non-existing user")
+    void deleteById_nonExistingUser_shouldNotThrowException() {
         Long nonExistentId = 999L;
-        when(userDao.deleteById(nonExistentId)).thenReturn(false);
+        doNothing().when(userRepo).deleteById(nonExistentId);
 
-        boolean result = userService.deleteById(nonExistentId);
+        userService.deleteById(nonExistentId);
 
-        assertThat(result).isFalse();
-        verify(userDao).deleteById(nonExistentId);
+        assertThatCode(() -> userService.deleteById(nonExistentId))
+                .doesNotThrowAnyException();
+
+        verify(userRepo, times(2)).deleteById(nonExistentId);
+    }
+
+    @Test
+    @DisplayName("Should handle null ID gracefully")
+    void deleteById_nullId_shouldNotThrowException() {
+        Long userId = null;
+        doNothing().when(userRepo).deleteById(userId);
+
+        assertThatCode(() -> userService.deleteById(userId))
+                .doesNotThrowAnyException();
+
+        verify(userRepo, times(1)).deleteById(userId);
     }
 
     // ==================== ТЕСТЫ ДЛЯ findAll ====================
@@ -248,24 +261,24 @@ public class UserServiceTests {
     @DisplayName("Should return list of all users")
     void findAll_shouldReturnAllUsers() {
         List<User> users = List.of(new User(), new User(), new User());
-        when(userDao.findAll()).thenReturn(users);
+        when(userRepo.findAll()).thenReturn(users);
 
         List<User> result = userService.findAll();
 
         assertThat(result).hasSize(3);
         assertThat(result).isEqualTo(users);
-        verify(userDao).findAll();
+        verify(userRepo).findAll();
     }
 
     @Test
     @DisplayName("Should return empty list when no users exist")
     void findAll_noUsers_shouldReturnEmptyList() {
-        when(userDao.findAll()).thenReturn(List.of());
+        when(userRepo.findAll()).thenReturn(List.of());
 
         List<User> result = userService.findAll();
 
         assertThat(result).isEmpty();
-        verify(userDao).findAll();
+        verify(userRepo).findAll();
     }
 
     // ==================== ТЕСТЫ ДЛЯ findById ====================
@@ -275,26 +288,26 @@ public class UserServiceTests {
         Long userId = 1L;
         User expectedUser = createTestUser();
         expectedUser.setId(userId);
-        when(userDao.findById(userId)).thenReturn(Optional.of(expectedUser));
+        when(userRepo.findById(userId)).thenReturn(Optional.of(expectedUser));
 
         User result = userService.findById(userId);
 
         // Assert
         assertThat(result).isEqualTo(expectedUser);
-        verify(userDao).findById(userId);
+        verify(userRepo).findById(userId);
     }
 
     @Test
     @DisplayName("Should throw exception when user not found by ID")
     void findById_nonExistingUser_shouldThrowException() {
         Long nonExistentId = 999L;
-        when(userDao.findById(nonExistentId)).thenReturn(Optional.empty());
+        when(userRepo.findById(nonExistentId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.findById(nonExistentId))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("User not found");
 
-        verify(userDao).findById(nonExistentId);
+        verify(userRepo).findById(nonExistentId);
     }
 
     // ==================== ТЕСТЫ ДЛЯ findByUsername ====================
@@ -303,24 +316,24 @@ public class UserServiceTests {
     void findByUsername_existingUser_shouldReturnUser() {
         String username = "john";
         User expectedUser = createTestUser();
-        when(userDao.findByUsername(username)).thenReturn(Optional.of(expectedUser));
+        when(userRepo.findByUsername(username)).thenReturn(Optional.of(expectedUser));
 
         User result = userService.findByUsername(username);
 
         assertThat(result).isEqualTo(expectedUser);
-        verify(userDao).findByUsername(username);
+        verify(userRepo).findByUsername(username);
     }
 
     @Test
     @DisplayName("Should throw exception when username not found")
     void findByUsername_nonExistingUser_shouldThrowException() {
         String username = "nonexistent";
-        when(userDao.findByUsername(username)).thenReturn(Optional.empty());
+        when(userRepo.findByUsername(username)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.findByUsername(username))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("User not found");
 
-        verify(userDao).findByUsername(username);
+        verify(userRepo).findByUsername(username);
     }
 }
