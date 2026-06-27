@@ -1,0 +1,85 @@
+### CSRF-токен
+GET http://localhost:8081/api/auth/csrf
+
+> {%
+    const token = response.body.csrfToken;
+    client.global.set("csrfToken", token);
+    console.log("✅ CSRF token successfully saved: " + token);
+%}
+
+### Логинимся
+POST http://localhost:8081/api/auth/login
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrfToken}}
+
+{
+  "username": "newuser",
+  "password": "132435"
+}
+
+> {%
+    if (response.status === 200) {
+        console.log("✅ Логин успешен!");
+
+        const setCookie = response.headers.valueOf("Set-Cookie");
+        if (setCookie != null) {
+            const jsessionid = setCookie.split(";")[0].split("=")[1];
+            client.global.set("JSESSIONID", jsessionid);
+            console.log("✅ JSESSIONID сохранен: " + jsessionid);
+        } else {
+            console.log("ℹ️ Кука уже существует, используем сохраненную сессию.");
+        }
+    } else {
+        console.log("❌ Логин не прошел. Статус: " + response.status);
+    }
+%}
+
+### Мой профиль
+GET http://localhost:8081/api/profile
+Accept: application/json
+
+### Произвольный профиль
+GET localhost:8081/api/users/50
+Accept: application/json
+
+### Все пользователи
+GET localhost:8081/api/users
+Accept: application/json
+
+### Удаляем произвольного пользователя
+DELETE http://localhost:8081/api/users/50
+Accept: application/json
+X-CSRF-TOKEN: {{csrfToken}}
+
+### Создать пользователя (ADMIN)
+POST http://localhost:8081/api/users/new
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrfToken}}
+
+{
+  "username": "newuser",
+  "password": "132435",
+  "firstName": "John",
+  "secondName": "Doe",
+  "birthYear": 1990,
+  "accountNonExpired": true,
+  "accountNonLocked": true,
+  "credentialsNonExpired": true,
+  "enabled": true,
+  "roleIds": [2]
+}
+
+### Изменить пароль пользователя (ADMIN или владелец)
+PATCH http://localhost:8081/api/users/51
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrfToken}}
+
+{
+  "password": "132435",
+  "roleIds": [1]
+}
+
+### Выход
+POST http://localhost:8081/api/auth/logout
+Content-Type: application/json
+X-CSRF-TOKEN: {{csrfToken}}

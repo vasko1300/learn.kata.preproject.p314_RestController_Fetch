@@ -1,5 +1,7 @@
-package ru.kata.spring.boot_security.demo.model;
+package ru.kata.spring.boot_security.demo.domain;
 
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,12 +31,13 @@ import java.util.stream.Collectors;
 @Setter
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
     public User(User user) {}
+    @Builder
     public User(String username, String password, String firstName, String secondName, Integer birthYear,
                 boolean accountNonExpired, boolean accountNonLocked, boolean credentialsNonExpired, boolean enabled,
                 Set<Role> roles) {

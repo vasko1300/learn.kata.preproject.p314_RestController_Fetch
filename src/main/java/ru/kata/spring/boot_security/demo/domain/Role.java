@@ -1,4 +1,4 @@
-package ru.kata.spring.boot_security.demo.model;
+package ru.kata.spring.boot_security.demo.domain;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -25,7 +25,6 @@ import java.util.Set;
 @Entity
 @Table(name = "roles")
 public class Role implements GrantedAuthority {
-//    public Role() {}
     public Role(Long id, String name) {
         this.id = id;
         this.name = name;
