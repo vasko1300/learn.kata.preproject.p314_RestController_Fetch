@@ -1,10 +1,8 @@
-package ru.kata.spring.boot_security.demo.mapper;
+package ru.kata.spring.boot_security.demo.domain.mapper;
 
 import org.springframework.stereotype.Component;
-import ru.kata.spring.boot_security.demo.dto.RoleDto;
-import ru.kata.spring.boot_security.demo.domain.Role;
-
-import java.util.Optional;
+import ru.kata.spring.boot_security.demo.domain.dto.RoleDto;
+import ru.kata.spring.boot_security.demo.domain.entity.Role;
 
 @Component
 public class RoleMapper {

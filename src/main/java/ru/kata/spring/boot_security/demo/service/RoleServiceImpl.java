@@ -1,22 +1,26 @@
 package ru.kata.spring.boot_security.demo.service;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kata.spring.boot_security.demo.domain.Role;
-import ru.kata.spring.boot_security.demo.dto.RoleDto;
-import ru.kata.spring.boot_security.demo.dto.RoleEditDto;
-import ru.kata.spring.boot_security.demo.mapper.RoleMapper;
+import ru.kata.spring.boot_security.demo.domain.entity.Role;
+import ru.kata.spring.boot_security.demo.domain.dto.RoleDto;
+import ru.kata.spring.boot_security.demo.domain.dto.RoleEditDto;
+import ru.kata.spring.boot_security.demo.domain.mapper.RoleMapper;
 import ru.kata.spring.boot_security.demo.repo.RoleRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RoleServiceImpl implements RoleService {
     private final RoleRepository roleRepo;
     private final RoleMapper roleMapper;
-    public RoleServiceImpl(RoleRepository roleRepo, RoleMapper roleMapper) {
+    private final UserDetailsServiceImpl userDetailsService;
+    public RoleServiceImpl(RoleRepository roleRepo, RoleMapper roleMapper, UserDetailsServiceImpl userDetailsService) {
         this.roleRepo = roleRepo;
         this.roleMapper = roleMapper;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -56,8 +60,33 @@ public class RoleServiceImpl implements RoleService {
 
     @Transactional(readOnly = true)
     @Override
+    public RoleDto findRoleDtoByName(String name) {
+        return roleMapper.toDto(
+                roleRepo.findByName(name)
+                        .orElseThrow(() -> new RuntimeException("Role not found"))
+        );
+    }
+
+    @Transactional(readOnly = true)
+    @Override
     public Role findById(Long id) {
         return roleRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Role not found"));
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Role findByName(String name) {
+        String roleName = name.startsWith("ROLE_") ? name : "ROLE_" + name;
+        return roleRepo.findByName(roleName)
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<String> principalRoleNames(Authentication auth) {
+        return auth.getAuthorities().stream()
+                .map(a -> a.getAuthority().replace("ROLE_", ""))
+                .collect(Collectors.toList());
     }
 }

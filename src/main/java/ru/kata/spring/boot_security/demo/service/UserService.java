@@ -1,12 +1,11 @@
 package ru.kata.spring.boot_security.demo.service;
 
-import org.springframework.transaction.annotation.Transactional;
-import ru.kata.spring.boot_security.demo.domain.User;
-import ru.kata.spring.boot_security.demo.dto.UserCreateDto;
-import ru.kata.spring.boot_security.demo.dto.UserDto;
-import ru.kata.spring.boot_security.demo.dto.UserEditDto;
-import ru.kata.spring.boot_security.demo.dto.ProfileDto;
-import ru.kata.spring.boot_security.demo.dto.ProfileEditDto;
+import ru.kata.spring.boot_security.demo.domain.entity.User;
+import ru.kata.spring.boot_security.demo.domain.dto.UserCreateDto;
+import ru.kata.spring.boot_security.demo.domain.dto.UserDto;
+import ru.kata.spring.boot_security.demo.domain.dto.UserEditDto;
+import ru.kata.spring.boot_security.demo.domain.dto.ProfileDto;
+import ru.kata.spring.boot_security.demo.domain.dto.ProfileEditDto;
 
 import java.util.List;
 

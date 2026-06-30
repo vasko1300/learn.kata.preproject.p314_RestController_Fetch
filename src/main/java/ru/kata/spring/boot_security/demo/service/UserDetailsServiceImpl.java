@@ -2,13 +2,17 @@ package ru.kata.spring.boot_security.demo.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kata.spring.boot_security.demo.domain.User;
+import ru.kata.spring.boot_security.demo.domain.entity.User;
 import ru.kata.spring.boot_security.demo.repo.UserRepository;
+
+import java.util.Collection;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -23,15 +27,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         log.info("=== loadUserByUsername вызван для username: {} ===", username);
-        User user = null;
-        try {
-            user = userRepo.findByUsernameWithRoles(username)
-                    .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден: " + username));
-        } catch (UsernameNotFoundException e) {
-            log.info("=== {} ===", e.getMessage());
-            throw e;
-        }
-//        Hibernate.initialize(user.getRoles());
+        User  user = null;
+        user = userRepo.findByUsernameWithRoles(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден: " + username));
         return user;
     }
 }

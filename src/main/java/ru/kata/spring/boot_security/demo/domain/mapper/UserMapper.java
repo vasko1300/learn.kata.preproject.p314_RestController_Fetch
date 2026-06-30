@@ -1,11 +1,9 @@
-package ru.kata.spring.boot_security.demo.mapper;
+package ru.kata.spring.boot_security.demo.domain.mapper;
 
 import org.springframework.stereotype.Component;
-import ru.kata.spring.boot_security.demo.domain.Role;
-import ru.kata.spring.boot_security.demo.domain.User;
-import ru.kata.spring.boot_security.demo.dto.UserCreateDto;
-import ru.kata.spring.boot_security.demo.dto.UserEditDto;
-import ru.kata.spring.boot_security.demo.dto.UserDto;
+import ru.kata.spring.boot_security.demo.domain.entity.User;
+import ru.kata.spring.boot_security.demo.domain.dto.UserCreateDto;
+import ru.kata.spring.boot_security.demo.domain.dto.UserDto;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 
 import java.util.stream.Collectors;
@@ -31,7 +29,7 @@ public class UserMapper {
                 user.isCredentialsNonExpired(),
                 user.isEnabled(),
                 user.getRoles()
-                        .stream().map(Role::getId).toList()
+                        .stream().map(role -> role.getName().replace("ROLE_", "")).toList()
         );
     }
     public User dtoToEntity(UserCreateDto dto) {
@@ -45,7 +43,7 @@ public class UserMapper {
                 dto.accountNonLocked(),
                 dto.credentialsNonExpired(),
                 dto.enabled(),
-                dto.roleIds().stream().map(roleService::findById).collect(Collectors.toSet())
+                dto.roleNames().stream().map(roleService::findByName).collect(Collectors.toSet())
         );
     }
 }

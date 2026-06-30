@@ -3,15 +3,15 @@ package ru.kata.spring.boot_security.demo.service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kata.spring.boot_security.demo.domain.User;
-import ru.kata.spring.boot_security.demo.dto.UserCreateDto;
-import ru.kata.spring.boot_security.demo.dto.UserDto;
-import ru.kata.spring.boot_security.demo.dto.UserEditDto;
-import ru.kata.spring.boot_security.demo.dto.ProfileDto;
-import ru.kata.spring.boot_security.demo.dto.ProfileEditDto;
+import ru.kata.spring.boot_security.demo.domain.entity.User;
+import ru.kata.spring.boot_security.demo.domain.dto.UserCreateDto;
+import ru.kata.spring.boot_security.demo.domain.dto.UserDto;
+import ru.kata.spring.boot_security.demo.domain.dto.UserEditDto;
+import ru.kata.spring.boot_security.demo.domain.dto.ProfileDto;
+import ru.kata.spring.boot_security.demo.domain.dto.ProfileEditDto;
 import ru.kata.spring.boot_security.demo.exception.UserNotFoundException;
-import ru.kata.spring.boot_security.demo.mapper.UserMapper;
-import ru.kata.spring.boot_security.demo.mapper.ProfileMapper;
+import ru.kata.spring.boot_security.demo.domain.mapper.UserMapper;
+import ru.kata.spring.boot_security.demo.domain.mapper.ProfileMapper;
 import ru.kata.spring.boot_security.demo.repo.UserRepository;
 
 import java.util.List;
@@ -95,9 +95,9 @@ public class UserServiceImpl implements UserService {
         userEditDto.accountNonLocked().ifPresent(existingUser::setAccountNonLocked);
         userEditDto.credentialsNonExpired().ifPresent(existingUser::setCredentialsNonExpired);
         userEditDto.enabled().ifPresent(existingUser::setEnabled);
-        userEditDto.roleIds().ifPresent(
-                roleIds -> existingUser.setRoles(
-                        roleIds.stream().map(roleService::findById).collect(Collectors.toSet())
+        userEditDto.roleNames().ifPresent(
+                roleNames -> existingUser.setRoles(
+                        roleNames.stream().map(roleService::findByName).collect(Collectors.toSet())
                 )
         );
         return userMapper.toDto(existingUser);

@@ -1,4 +1,4 @@
-package ru.kata.spring.boot_security.demo.dto;
+package ru.kata.spring.boot_security.demo.domain.dto;
 
 import lombok.Builder;
 
@@ -15,5 +15,5 @@ public record UserCreateDto(
         Boolean accountNonLocked,
         Boolean credentialsNonExpired,
         Boolean enabled,
-        List<Long> roleIds
+        List<String> roleNames
 ) {}

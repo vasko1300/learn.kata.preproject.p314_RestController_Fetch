@@ -1,4 +1,4 @@
-package ru.kata.spring.boot_security.demo.domain;
+package ru.kata.spring.boot_security.demo.domain.entity;
 
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name = "users")
 public class User implements UserDetails {
-    public User(User user) {}
     @Builder
     public User(String username, String password, String firstName, String secondName, Integer birthYear,
                 boolean accountNonExpired, boolean accountNonLocked, boolean credentialsNonExpired, boolean enabled,

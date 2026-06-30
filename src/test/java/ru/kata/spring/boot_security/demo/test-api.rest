@@ -10,7 +10,7 @@ GET http://localhost:8081/api/auth/csrf
 ### Логинимся
 POST http://localhost:8081/api/auth/login
 Content-Type: application/json
-X-CSRF-TOKEN: {{csrfToken}}
+X-XSRF-TOKEN: {{csrfToken}}
 
 {
   "username": "newuser",
@@ -49,12 +49,12 @@ Accept: application/json
 ### Удаляем произвольного пользователя
 DELETE http://localhost:8081/api/users/50
 Accept: application/json
-X-CSRF-TOKEN: {{csrfToken}}
+X-XSRF-TOKEN: {{csrfToken}}
 
 ### Создать пользователя (ADMIN)
 POST http://localhost:8081/api/users/new
 Content-Type: application/json
-X-CSRF-TOKEN: {{csrfToken}}
+X-XSRF-TOKEN: {{csrfToken}}
 
 {
   "username": "newuser",
@@ -72,7 +72,7 @@ X-CSRF-TOKEN: {{csrfToken}}
 ### Изменить пароль пользователя (ADMIN или владелец)
 PATCH http://localhost:8081/api/users/51
 Content-Type: application/json
-X-CSRF-TOKEN: {{csrfToken}}
+X-XSRF-TOKEN: {{csrfToken}}
 
 {
   "password": "132435",
@@ -82,4 +82,4 @@ X-CSRF-TOKEN: {{csrfToken}}
 ### Выход
 POST http://localhost:8081/api/auth/logout
 Content-Type: application/json
-X-CSRF-TOKEN: {{csrfToken}}
+X-XSRF-TOKEN: {{csrfToken}}

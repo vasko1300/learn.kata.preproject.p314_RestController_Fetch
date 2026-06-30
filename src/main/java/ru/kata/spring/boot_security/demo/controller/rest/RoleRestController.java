@@ -1,12 +1,12 @@
-package ru.kata.spring.boot_security.demo.controller;
+package ru.kata.spring.boot_security.demo.controller.rest;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.kata.spring.boot_security.demo.dto.RoleDto;
-import ru.kata.spring.boot_security.demo.mapper.RoleMapper;
+import ru.kata.spring.boot_security.demo.domain.dto.RoleDto;
+import ru.kata.spring.boot_security.demo.domain.mapper.RoleMapper;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 
 import java.util.List;

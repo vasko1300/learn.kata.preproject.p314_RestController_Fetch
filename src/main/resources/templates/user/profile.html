@@ -7,110 +7,518 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>User Profile</title>
+    <style>
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .data-placeholder {
+            color: #6c757d;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
-    <!-- ======== НАВБАР ======== -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <!-- Информация слева (username и роль) -->
-            <div class="navbar-brand">
-                <span sec:authentication="name" class="fw-bold">admin</span>
-                <span class="text-light ms-2"> roles:</span>
-                <span class="text-light ms-2" th:each="authority : ${#authentication.getAuthorities()}">
-                    <span th:text="${#strings.replace(authority.getAuthority(), 'ROLE_', '')}"></span>
-                    <span th:if="${!authorityStat.last}">, </span>
-                </span>
-            </div>
-            <!-- Элементы справа (выход) -->
-            <form th:action="@{/sign-out}" method="post">
-                <button type="submit" class="btn btn-outline-danger">Logout</button>
-            </form>
-        </div>
-    </nav>
-
-    <!-- ======== ОСНОВНОЙ КОНТЕЙНЕР ======== -->
+<!-- ======== НАВБАР ======== -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-        <div class="row">
-            <!-- ЛЕВАЯ КОЛОНКА (меню) -->
-            <div class="col-md-2">
-                <div class="list-group mt-3">
-                    <!-- Пункт Admin (виден только администраторам) -->
-                    <a sec:authorize="hasRole('ADMIN')"
-                       href="/admin"
-                       class="list-group-item list-group-item-action"
-                       th:classappend="${#httpServletRequest.requestURI.contains('/admin')} ? 'active'">
-                        Admin
-                    </a>
-                    <!-- Пункт User (виден всем авторизованным пользователям) -->
-                    <a href="/user"
-                       class="list-group-item list-group-item-action"
-                       th:classappend="${#httpServletRequest.requestURI.contains('/user')} ? 'active'">
-                        User
-                    </a>
-                </div>
+        <div class="navbar-brand">
+            <span id="username-display" class="fw-bold">Загрузка...</span>
+            <span class="text-light ms-2"> roles:</span>
+            <span id="roles-display" class="text-light ms-2">Загрузка...</span>
+        </div>
+        <form id="logout-form" th:action="@{/logout}" method="post">
+            <button type="submit" class="btn btn-outline-danger">Logout</button>
+        </form>
+    </div>
+</nav>
+
+<!-- ======== ОСНОВНОЙ КОНТЕЙНЕР ======== -->
+<div class="container-fluid">
+    <div class="row">
+        <!-- ЛЕВАЯ КОЛОНКА (меню) -->
+        <div class="col-md-2">
+            <div class="list-group mt-3">
+                <a id="admin-link"
+                   href="/admin"
+                   class="list-group-item list-group-item-action">
+                    Admin
+                </a>
+                <a id="user-link"
+                   href="/user"
+                   class="list-group-item list-group-item-action active">
+                    User
+                </a>
             </div>
+        </div>
 
-            <!-- ПРАВАЯ КОЛОНКА (контент) -->
-            <div class="col-md-10 bg-body-tertiary p-3" style="min-height: 100vh; overflow-x: hidden;">
-                <!-- Заголовок страницы -->
-                <h1 class="mt-3 mb-3">User information-page</h1>
+        <!-- ПРАВАЯ КОЛОНКА (контент) -->
+        <div class="col-md-10 bg-body-tertiary p-3" style="min-height: 100vh; overflow-x: hidden;">
+            <h1 class="mt-3 mb-3">User information-page</h1>
 
-                <!-- Блок About user -->
-                <div class="card mt-3">
-                    <div class="card-header">
-                        <h5 class="mb-0">About user</h5>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5 class="mb-0">About user</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Индикатор загрузки -->
+                    <div id="loading-indicator" class="text-center py-3">
+                        <div class="loading-spinner"></div>
+                        <span class="ms-2">Загрузка данных...</span>
                     </div>
-                    <div class="card-body">
-                        <!-- Таблица с данными пользователя -->
-                        <table class="table table-bordered table-striped mb-0">
-                            <tbody>
-                            <tr>
-                                <th class="w-25 bg-light">ID</th>
-                                <td th:text="${user.id}">—</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Username</th>
-                                <td th:text="${user.username}">—</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">First Name</th>
-                                <td th:text="${user.firstName}">—</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Last Name</th>
-                                <td th:text="${user.secondName}">—</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Birth Year</th>
-                                <td th:text="${user.birthYear}">—</td>
-                            </tr>
-                            <tr>
-                                <th class="bg-light">Roles</th>
-                                <td>
-                                        <span th:each="role, iterStat : ${user.roles}">
-                                            <span th:text="${#strings.replace(role.name, 'ROLE_', '')}"></span>
-                                            <span th:unless="${iterStat.last}">, </span>
-                                        </span>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
 
-                        <!-- Сообщение об успехе -->
-                        <div th:if="${successMessage}" class="alert alert-success mt-3" role="alert">
-                            <span th:text="${successMessage}">Profile updated successfully!</span>
-                        </div>
+                    <!-- Блок ошибок -->
+                    <div id="error-message" class="alert alert-danger" style="display: none;">
+                        <span id="error-text"></span>
+                    </div>
 
-                        <!-- Кнопки действий -->
-                        <div class="mt-3 d-flex gap-2">
-                            <a th:href="@{/user/edit}" class="btn btn-primary">Edit Profile</a>
-                        </div>
+                    <!-- Таблица с данными -->
+                    <table id="user-table" class="table table-bordered table-striped mb-0" style="display: none;">
+                        <tbody>
+                        <tr>
+                            <th class="w-25 bg-light">ID</th>
+                            <td id="user-id" class="data-placeholder">—</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Username</th>
+                            <td id="user-username" class="data-placeholder">—</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">First Name</th>
+                            <td id="user-firstname" class="data-placeholder">—</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Last Name</th>
+                            <td id="user-lastname" class="data-placeholder">—</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Birth Year</th>
+                            <td id="user-birthyear" class="data-placeholder">—</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Roles</th>
+                            <td id="user-roles" class="data-placeholder">—</td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <!-- Сообщение об успехе -->
+                    <div id="success-message" class="alert alert-success mt-3" style="display: none;">
+                        <span id="success-text">Profile updated successfully!</span>
+                    </div>
+
+                    <!-- Кнопка Edit Profile -->
+                    <div class="mt-3 d-flex gap-2">
+                        <button id="edit-profile-btn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            Edit Profile
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- ======== МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ ======== -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-profile-form">
+                    <!-- Скрытое поле ID -->
+                    <input type="hidden" id="edit-user-id" />
+
+                    <!-- Username (только для чтения) -->
+                    <div class="mb-3">
+                        <label for="edit-username" class="form-label">Username</label>
+                        <input type="text" id="edit-username" class="form-control bg-light" readonly style="cursor: not-allowed;" />
+                        <div class="form-text text-muted">Username cannot be changed. Contact admin.</div>
+                    </div>
+
+                    <!-- First Name -->
+                    <div class="mb-3">
+                        <label for="edit-firstname" class="form-label">First Name</label>
+                        <input type="text" id="edit-firstname" class="form-control" required />
+                    </div>
+
+                    <!-- Last Name -->
+                    <div class="mb-3">
+                        <label for="edit-lastname" class="form-label">Last Name</label>
+                        <input type="text" id="edit-lastname" class="form-control" required />
+                    </div>
+
+                    <!-- Birth Year -->
+                    <div class="mb-3">
+                        <label for="edit-birthyear" class="form-label">Birth Year</label>
+                        <input type="number" id="edit-birthyear" class="form-control" required min="1900" max="2026" />
+                    </div>
+
+                    <!-- New Password -->
+                    <div class="mb-3">
+                        <label for="edit-password" class="form-label">New Password</label>
+                        <input type="password" id="edit-password" class="form-control"
+                               placeholder="••••••••" />
+                        <div class="form-text text-muted">
+                            Leave empty if you don't want to change the password.
+                            <span class="text-danger">Min 6 characters</span>
+                        </div>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="mb-3">
+                        <label for="edit-password-confirm" class="form-label">Confirm New Password</label>
+                        <input type="password" id="edit-password-confirm" class="form-control"
+                               placeholder="••••••••" />
+                    </div>
+
+                    <!-- Сообщение об ошибке -->
+                    <div id="edit-error-message" class="alert alert-danger" style="display: none;">
+                        <span id="edit-error-text"></span>
+                    </div>
+
+                    <!-- Сообщение об успехе -->
+                    <div id="edit-success-message" class="alert alert-success" style="display: none;">
+                        <span id="edit-success-text">Profile updated successfully!</span>
+                    </div>
+
+                    <div class="mt-3 d-flex gap-2 justify-content-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="edit-save-btn">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ========== JAVASCRIPT ========== -->
+<script>
+    /**
+     * Загружает профиль пользователя и обновляет интерфейс
+     */
+    async function loadProfile() {
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const userTable = document.getElementById('user-table');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+
+        try {
+            loadingIndicator.style.display = 'block';
+            userTable.style.display = 'none';
+            errorMessage.style.display = 'none';
+
+            const response = await fetch('/api/profile', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error('Вы не авторизованы. Пожалуйста, войдите в систему.');
+                }
+                throw new Error(`Ошибка загрузки профиля (${response.status})`);
+            }
+
+            const user = await response.json();
+            console.log('✅ Профиль загружен:', user);
+
+            renderUserData(user);
+
+            loadingIndicator.style.display = 'none';
+            userTable.style.display = 'table';
+
+        } catch (error) {
+            console.error('❌ Ошибка:', error);
+            loadingIndicator.style.display = 'none';
+            errorMessage.style.display = 'block';
+            errorText.textContent = error.message || 'Не удалось загрузить данные профиля';
+        }
+    }
+
+    /**
+     * Заполняет DOM данными пользователя
+     */
+    function renderUserData(user) {
+        document.getElementById('user-id').textContent = user.id ?? '—';
+        document.getElementById('user-username').textContent = user.username ?? '—';
+        document.getElementById('user-firstname').textContent = user.firstName ?? '—';
+        document.getElementById('user-lastname').textContent = user.secondName ?? '—';
+        document.getElementById('user-birthyear').textContent = user.birthYear ?? '—';
+
+        const rolesNames = user.roles && user.roles.length > 0
+            ? user.roles.map(roleId => `${roleId}`).join(', ')
+            : '—';
+        document.getElementById('user-roles').textContent = rolesNames;
+
+        document.querySelectorAll('#user-table td').forEach(td => {
+            td.classList.remove('data-placeholder');
+        });
+
+        document.getElementById('username-display').textContent = user.username ?? 'Гость';
+        document.getElementById('roles-display').textContent = rolesNames;
+    }
+
+    // ========== РЕДАКТИРОВАНИЕ ПРОФИЛЯ ==========
+
+    // Храним исходные данные пользователя для сравнения
+    let currentUser = {};
+
+    /**
+     * Заполняет форму редактирования данными из текущего профиля
+     */
+    function fillEditForm(user) {
+        currentUser = {
+            id: user.id || '',
+            username: user.username || '',
+            firstName: user.firstName || '',
+            secondName: user.secondName || '',
+            birthYear: user.birthYear || ''
+        };
+
+        document.getElementById('edit-user-id').value = currentUser.id;
+        document.getElementById('edit-username').value = currentUser.username;
+        document.getElementById('edit-firstname').value = currentUser.firstName;
+        document.getElementById('edit-lastname').value = currentUser.secondName;
+        document.getElementById('edit-birthyear').value = currentUser.birthYear;
+
+        // Очищаем поля пароля (плейсхолдеры показывают точечки)
+        document.getElementById('edit-password').value = '';
+        document.getElementById('edit-password-confirm').value = '';
+
+        document.getElementById('edit-error-message').style.display = 'none';
+        document.getElementById('edit-success-message').style.display = 'none';
+    }
+
+    /**
+     * Получаем токен из куки
+     */
+    function getCsrfTokenFromCookie() {
+        const name = 'XSRF-TOKEN';
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) {
+            return parts.pop().split(';').shift();
+        }
+        return null;
+    }
+
+    /**
+     * Отправляет только измененные поля на сервер
+     */
+    async function updateProfile(event) {
+        event.preventDefault();
+
+        const saveBtn = document.getElementById('edit-save-btn');
+        const errorMessage = document.getElementById('edit-error-message');
+        const errorText = document.getElementById('edit-error-text');
+        const successMessage = document.getElementById('edit-success-message');
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+
+        errorMessage.style.display = 'none';
+        successMessage.style.display = 'none';
+
+        const newFirstName = document.getElementById('edit-firstname').value.trim();
+        const newSecondName = document.getElementById('edit-lastname').value.trim();
+        const newBirthYear = parseInt(document.getElementById('edit-birthyear').value, 10);
+        const newPassword = document.getElementById('edit-password').value.trim();
+        const newPasswordConfirm = document.getElementById('edit-password-confirm').value.trim();
+
+        // Валидация
+        if (!newFirstName || !newSecondName || isNaN(newBirthYear)) {
+            errorText.textContent = 'First Name, Last Name and Birth Year are required.';
+            errorMessage.style.display = 'block';
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save changes';
+            return;
+        }
+
+        if (newBirthYear < 1900 || newBirthYear > 2026) {
+            errorText.textContent = 'Birth year must be between 1900 and 2026.';
+            errorMessage.style.display = 'block';
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save changes';
+            return;
+        }
+
+        if (newPassword || newPasswordConfirm) {
+            if (newPassword.length < 6) {
+                errorText.textContent = 'New password must be at least 6 characters.';
+                errorMessage.style.display = 'block';
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save changes';
+                return;
+            }
+            if (newPassword !== newPasswordConfirm) {
+                errorText.textContent = 'Passwords do not match.';
+                errorMessage.style.display = 'block';
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save changes';
+                return;
+            }
+        }
+        const csrfToken = getCsrfTokenFromCookie();
+        if (!csrfToken) {
+            errorText.textContent = 'Security error: CSRF token not found.';
+            errorMessage.style.display = 'block';
+            return;
+        }
+
+        // Формируем payload только из измененных полей
+        const payload = {};
+
+        if (newFirstName !== currentUser.firstName) {
+            payload.firstName = newFirstName;
+        }
+        if (newSecondName !== currentUser.secondName) {
+            payload.secondName = newSecondName;
+        }
+        if (newBirthYear !== currentUser.birthYear) {
+            payload.birthYear = newBirthYear;
+        }
+        if (newPassword) {
+            payload.password = newPassword;
+        }
+
+        if (Object.keys(payload).length === 0) {
+            errorText.textContent = 'No changes detected.';
+            errorMessage.style.display = 'block';
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save changes';
+            return;
+        }
+
+        console.log('📦 Отправляем на сервер:', payload);
+        console.log('🔑 CSRF-токен:', csrfToken);
+
+        try {
+            const response = await fetch('/api/profile', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': csrfToken
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `Error ${response.status}`);
+            }
+
+            const updatedUser = await response.json();
+            console.log('✅ Профиль обновлен:', updatedUser);
+
+            renderUserData(updatedUser);
+
+            currentUser = {
+                id: updatedUser.id || '',
+                username: updatedUser.username || '',
+                firstName: updatedUser.firstName || '',
+                secondName: updatedUser.secondName || '',
+                birthYear: updatedUser.birthYear || ''
+            };
+
+            successMessage.style.display = 'block';
+            document.getElementById('edit-success-text').textContent = 'Profile updated successfully!';
+
+            setTimeout(() => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
+                if (modal) modal.hide();
+                loadProfile();
+            }, 1500);
+
+        } catch (error) {
+            console.error('❌ Ошибка обновления:', error);
+            errorText.textContent = error.message || 'Failed to update profile. Please try again.';
+            errorMessage.style.display = 'block';
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save changes';
+        }
+    }
+
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Загрузка профиля
+        loadProfile();
+
+        // Модальное окно: заполняем форму при открытии
+        const modal = document.getElementById('editProfileModal');
+        if (modal) {
+            modal.addEventListener('show.bs.modal', function () {
+                const user = {
+                    id: document.getElementById('user-id').textContent,
+                    username: document.getElementById('user-username').textContent,
+                    firstName: document.getElementById('user-firstname').textContent,
+                    secondName: document.getElementById('user-lastname').textContent,
+                    birthYear: document.getElementById('user-birthyear').textContent
+                };
+                fillEditForm(user);
+            });
+        }
+
+        // Обработчик отправки формы
+        const editForm = document.getElementById('edit-profile-form');
+        if (editForm) {
+            editForm.addEventListener('submit', updateProfile);
+        }
+
+        // Логаут через Fetch
+        const logoutForm = document.getElementById('logout-form');
+        if (logoutForm) {
+            logoutForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                logout();
+            });
+        }
+    });
+
+    // ========== ЛОГАУТ ==========
+
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    async function logout() {
+        const csrfToken = getCookie('XSRF-TOKEN');
+        const response = await fetch('/api/auth/logout', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-XSRF-TOKEN': csrfToken || ''
+            }
+        });
+        if (response.ok) {
+            window.location.href = '/login?logout=true';
+        } else {
+            console.error('Logout failed:', response.status);
+        }
+    }
+</script>
 </body>
 </html>

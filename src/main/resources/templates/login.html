@@ -1,70 +1,245 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="https://www.thymeleaf.org"
-      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3"
-      lang="en">
+<html lang="en">
 <head>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Login page</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .loading-spinner {
+            display: none;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-<body class="bg-light d-flex align-items-center" style="min-height: 100vh;">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
+<body>
+<div class="container">
+    <div class="login-container">
+        <div class="card shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <h1 class="h3 mb-3 fw-normal text-center">Please sign in</h1>
 
-                <!-- Карточка с формой -->
-                <div class="card shadow-sm">
-                    <div class="card-body p-4 p-md-5">
+                <!-- ========== КОНТЕЙНЕР ДЛЯ СООБЩЕНИЙ ========== -->
+                <div id="message-container"></div>
 
-                        <!-- Заголовок -->
-                        <h1 class="h3 mb-3 fw-normal text-center">Please sign in</h1>
-
-                        <!-- Форма -->
-                        <form th:action="@{/login.html}" method="post">
-
-                            <!-- Поле Email / Username -->
-                            <div class="form-floating mb-3">
-                                <input type="text"
-                                       class="form-control"
-                                       id="username"
-                                       name="username"
-                                       placeholder="name@example.com"
-                                       autofocus="autofocus"
-                                       th:value="${username}">
-                                <label for="username">Username</label>
-                            </div>
-
-                            <!-- Поле Password -->
-                            <div class="form-floating mb-3">
-                                <input type="password"
-                                       class="form-control"
-                                       id="password"
-                                       name="password"
-                                       placeholder="Password">
-                                <label for="password">Password</label>
-                            </div>
-
-                            <!-- Ошибка логина -->
-                            <div th:if="${loginError}" class="alert alert-danger" role="alert">
-                                Wrong user or password
-                            </div>
-
-                            <!-- Кнопка входа -->
-                            <button class="btn btn-primary w-100 py-2" type="submit">
-                                Sign in
-                            </button>
-                        </form>
-
+                <!-- ========== ФОРМА ЛОГИНА (без action) ========== -->
+                <form id="login-form" method="post">
+                    <div class="form-floating mb-3">
+                        <input type="text"
+                               class="form-control"
+                               id="username"
+                               name="username"
+                               placeholder="name@example.com"
+                               autofocus="autofocus"
+                               required>
+                        <label for="username">Username</label>
                     </div>
-                </div>
-                <!-- Конец карточки -->
 
+                    <div class="form-floating mb-3">
+                        <input type="password"
+                               class="form-control"
+                               id="password"
+                               name="password"
+                               placeholder="Password"
+                               required>
+                        <label for="password">Password</label>
+                    </div>
+
+                    <button class="btn btn-primary w-100 py-2" type="submit" id="login-btn">
+                        <span id="spinner" class="loading-spinner"></span>
+                        <span id="btn-text">Sign in</span>
+                    </button>
+                </form>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    (function() {
+        'use strict';
+
+        const form = document.getElementById('login-form');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('login-btn');
+        const btnText = document.getElementById('btn-text');
+        const spinner = document.getElementById('spinner');
+        const messageContainer = document.getElementById('message-container');
+
+        /**
+         * Показывает сообщение на странице
+         */
+        function showMessage(message, type = 'danger') {
+            messageContainer.innerHTML = `
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+        }
+
+        /**
+         * Очищает сообщения
+         */
+        function clearMessages() {
+            messageContainer.innerHTML = '';
+        }
+
+        /**
+         * Устанавливает состояние кнопки (загрузка/готовность)
+         */
+        function setLoading(isLoading) {
+            if (isLoading) {
+                spinner.style.display = 'inline-block';
+                btnText.textContent = 'Logging in...';
+                loginBtn.disabled = true;
+            } else {
+                spinner.style.display = 'none';
+                btnText.textContent = 'Sign in';
+                loginBtn.disabled = false;
+            }
+        }
+
+        /**
+         * Получает CSRF-токен с сервера
+         */
+        async function fetchCsrfToken() {
+            try {
+                const response = await fetch('/api/auth/csrf', {
+                    method: 'GET',
+                    credentials: 'same-origin'
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch CSRF token');
+                }
+                const data = await response.json();
+                return data.csrfToken;
+            } catch (error) {
+                console.warn('Не удалось получить CSRF-токен:', error);
+                return null;
+            }
+        }
+
+        /**
+         * Отправляет запрос на логин через Fetch
+         */
+        async function login(username, password, csrfToken) {
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            // Если CSRF-токен получен — добавляем в заголовок
+            if (csrfToken) {
+                headers['X-XSRF-TOKEN'] = csrfToken;
+            }
+
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: headers,
+                credentials: 'same-origin', // Отправляем cookies (JSESSIONID)
+                body: JSON.stringify({ username, password })
+            });
+
+            if (!response.ok) {
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error('Invalid username or password');
+                }
+                throw new Error(`Login failed: ${response.status} ${response.statusText}`);
+            }
+
+            return await response.json();
+        }
+
+        /**
+         * Обработчик отправки формы
+         */
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault(); // Отменяем стандартную отправку
+
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            // Базовая валидация
+            if (!username || !password) {
+                showMessage('Please enter both username and password', 'warning');
+                return;
+            }
+
+            clearMessages();
+            setLoading(true);
+
+            try {
+                // 1. Получаем CSRF-токен (если нужен)
+                const csrfToken = await fetchCsrfToken();
+
+                // 2. Отправляем логин
+                const userData = await login(username, password, csrfToken);
+
+                console.log('✅ Login successful:', userData);
+
+                // 3. Проверяем роли и редиректим
+                if (userData.roles && userData.roles.length > 0) {
+                    // Если роли приходят как ID (например, 1 = USER, 2 = ADMIN)
+                    // Или как строки "ROLE_ADMIN"
+                    const hasAdminRole = userData.roles.includes(2) ||
+                        userData.roles.includes('ADMIN');
+
+                    if (hasAdminRole) {
+                        window.location.href = '/admin';
+                    } else {
+                        window.location.href = '/user';
+                    }
+                } else {
+                    window.location.href = '/';
+                }
+
+            } catch (error) {
+                console.error('❌ Login error:', error);
+                showMessage(error.message || 'Login failed. Please try again.', 'danger');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        // Если на страницу перешли с параметром error или logout
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const logout = urlParams.get('logout');
+
+            if (error === 'true') {
+                showMessage('Invalid username or password', 'danger');
+            }
+            if (logout === 'true') {
+                showMessage('You have been logged out successfully', 'success');
+            }
+        });
+
+    })();
+</script>
 </body>
 </html>

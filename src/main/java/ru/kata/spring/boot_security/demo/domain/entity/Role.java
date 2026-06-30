@@ -1,4 +1,4 @@
-package ru.kata.spring.boot_security.demo.domain;
+package ru.kata.spring.boot_security.demo.domain.entity;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

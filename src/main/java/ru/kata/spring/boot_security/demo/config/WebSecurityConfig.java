@@ -11,43 +11,46 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import javax.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
-// Начиная с Spring Security 5.7 (Spring Boot 2.7+ и 3.х) WebSecurityConfigurerAdapter (его требовалось расширять своим
-// классом-конфигуратором и переопределять configure()) устарел и удален. Поэтому вместо configure() реализуем
-// @Bean SecurityFilterChain и @Bean AuthenticationManager. @EnableWebSecurity по-прежнему нужен - подключает Spring
-// Security в контекст, создает springSecurityFilterChain (главный фильтр), сканирует бины типа SecurityFilterChain (их
-// теперь может быть несколько), настраивает базовую инфраструктуру
+/* Начиная с Spring Security 5.7 (Spring Boot 2.7+ и 3.х) WebSecurityConfigurerAdapter (его требовалось расширять своим
+ классом-конфигуратором и переопределять configure()) устарел и удален. Поэтому вместо configure() реализуем
+ @Bean SecurityFilterChain и @Bean AuthenticationManager. @EnableWebSecurity по-прежнему нужен - подключает Spring
+ Security в контекст, создает springSecurityFilterChain (главный фильтр), сканирует бины типа SecurityFilterChain (их
+ теперь может быть несколько), настраивает базовую инфраструктуру*/
 @EnableMethodSecurity
 // Включает аннотации на методах контроллера: @PreAuthorize("hasRole('ADMIN')"), @PostAuthorize и т.д.
 public class WebSecurityConfig {
-    private final SuccessUserHandler successUserHandler;
+    /*private final SuccessUserHandler successUserHandler;
 
     public WebSecurityConfig(SuccessUserHandler successUserHandler) {
         this.successUserHandler = successUserHandler;
-    }
+    }*/
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
+        return http
                 .authorizeRequests()
-                        .antMatchers("/", "/api/auth/**").permitAll()
-                        .antMatchers("/api/users/**").hasRole("ADMIN")
-                        .antMatchers("/api/profile/**").hasRole("USER")
-                        .anyRequest().authenticated()
-                        .and()
+                    .antMatchers("/", "/api/auth/**", "/css/**", "/js/**").permitAll()
+                    .antMatchers("/admin/**", "/api/users/**").hasRole("ADMIN")
+                    .antMatchers("/user/**", "/api/profile/**").hasRole("USER")
+                    .anyRequest().authenticated()
+                    .and()
                 .formLogin()
-//                        .loginPage("/api/auth/login")
-//                        .loginProcessingUrl("/login")
-                        .successHandler(successUserHandler)
-                        .failureUrl("/api/auth/login-error.html")
-                        .permitAll()
-                        .and()
-                .logout()
-                        .logoutUrl("/api/auth/logout")
+                    /*.defaultSuccessUrl("/api/auth/login-success", true)
+                    .failureUrl("/api/auth/login-error")*/
+                    .loginPage("/login")
+                    .loginProcessingUrl("/login")
+//                    .successHandler(successUserHandler)
+                    .failureUrl("/login?error=true")
+                    .permitAll()
+                    .and()
+                /*.logout()
+                    *//*.logoutUrl("/api/auth/logout")
                         .logoutSuccessHandler((
                                 request,
                                 response,
@@ -56,14 +59,17 @@ public class WebSecurityConfig {
                             response.setStatus(HttpServletResponse.SC_OK);
                             response.setContentType("application/json");
                             response.getWriter().write("{\"message\": \"Logged out successfully\"}");
-                        })
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID")
-                        .permitAll()
-                        .and()
-                .csrf(Customizer.withDefaults());
-        return http.build();
+                })*//*
+                    .logoutUrl("/logout")
+                    .logoutSuccessUrl("/login?logout=true")
+                    .invalidateHttpSession(true)
+                    .clearAuthentication(true)
+                    .deleteCookies("JSESSIONID")
+                    .permitAll()
+                    .and()*/
+                .csrf(csrf -> csrf
+                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .build();
     }
 
     @Bean

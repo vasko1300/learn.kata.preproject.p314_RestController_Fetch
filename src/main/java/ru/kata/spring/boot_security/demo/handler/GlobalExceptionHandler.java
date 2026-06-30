@@ -1,10 +1,10 @@
-package ru.kata.spring.boot_security.demo.handler;
+package ru.kata.spring.boot_security.demo.exception.handler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import ru.kata.spring.boot_security.demo.dto.ErrorResponse;
+import ru.kata.spring.boot_security.demo.domain.dto.ErrorResponse;
 import ru.kata.spring.boot_security.demo.exception.EntityNotFoundException;
 import ru.kata.spring.boot_security.demo.exception.RoleNotFoundException;
 import ru.kata.spring.boot_security.demo.exception.UserNotFoundException;
